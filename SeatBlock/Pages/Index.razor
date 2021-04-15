@@ -1,0 +1,146 @@
+﻿@page "/"
+
+<style>
+    .seat-card {
+        margin: 8px;
+        min-width: 80px;
+        max-height: 80px;
+        border: 1px solid;
+        border-radius: 5%;
+        cursor: pointer;
+    }
+
+    .seat-card-content {
+        padding: 1rem;
+        text-align: center;
+    }
+
+    .seat-card-clean-margin {
+        margin: 0px;
+    }
+</style>
+
+<div class="col">
+    <div class="card">
+        <div class="card-header">
+            <div class="row margin-t-10">
+                <div class="col-auto align-self-center">
+                    <input @bind-value="@seat.Row" Label="Row" placeholder="Row" />
+                </div>
+
+                <div class="col-auto align-self-center">
+                    <input @bind-value="@seat.Column" Label="Column" placeholder="Column" />
+                </div>
+
+                <div class="col-auto">
+                    <button @onclick="@DrawSeat" class="btn btn-primary">Draw Seat</button>
+                </div>
+            </div>
+
+        </div>
+        <div class="card-body">
+            @for (int i = 0; i < seat.Column; i++)
+            {
+                int item = i;
+                <div class="row">
+                    @for (int j = 0; j < seat.Row; j++)
+                    {
+                        int item2 = j;
+                        <div @onclick="@(()=>SheetBlocked(item,item2))">
+                            @if (seats.Where(a => a.Row.Equals(item2) && a.Column.Equals(item)).FirstOrDefault() != null)
+                            {
+                                <div class="seat-card @(IsBlocked(item, item2) ? "bg-success" : "")">
+                                    <div class="seat-card-content">
+                                        <div class="seat-card-content demo-mat-card-clean-margin">
+                                            <h6>
+                                                @SheetNo(i, j)
+                                            </h6>
+                                        </div>
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+
+
+@code{
+    public class Table
+    {
+        public int? Column { get; set; }
+
+        public int? Row { get; set; }
+    }
+
+    public class Seat : Table
+    {
+        public int Id { get; set; }
+
+        public string Name { get; set; }
+
+        public bool IsBlocked { get; set; }
+    }
+
+    List<Seat> seats = new List<Seat>();
+
+    Seat seat = new Seat();
+
+    void DrawSeat()
+    {
+        seats = new List<Seat>();
+
+        int noAlpha = 65;//A start from 65
+
+        @for (int i = 0; i < seat.Column; i++)
+        {
+            int no = 1;
+
+            @for (int j = 0; j < seat.Row; j++)
+            {
+                seats.Add(new Seat { Id = no, Name = $"{((char)noAlpha) + "" + no}", Column = i, Row = j });
+
+                no++;
+            }
+
+            noAlpha++;
+        }
+
+        StateHasChanged();
+    }
+
+    string SheetNo(int column, int row)
+    {
+        return seats.Where(a => a.Row.Equals(row) && a.Column.Equals(column)).Select(a => $"{a.Name} ({a.Column}, {a.Row})").FirstOrDefault();
+    }
+
+    void SheetBlocked(int column, int row)
+    {
+        var seat = seats.Where(a => a.Row.Equals(row) && a.Column.Equals(column)).FirstOrDefault();
+
+        if (seat != null)
+        {
+            seat.IsBlocked = !seat.IsBlocked;
+
+        }
+    }
+
+    bool IsBlocked(int column, int row)
+    {
+        var seat = seats.Where(a => a.Row.Equals(row) && a.Column.Equals(column)).FirstOrDefault();
+
+        if (seat != null)
+        {
+            return seat.IsBlocked;
+        }
+
+        return false;
+    }
+
+
+}
+
